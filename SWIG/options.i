@@ -1755,6 +1755,64 @@ class FFTVarianceGammaEnginePtr
     }
 };
 
+// Lookback Options
+
+%{
+using QuantLib::ContinuousFixedLookbackOption;
+typedef boost::shared_ptr<Instrument> ContinuousFixedLookbackOptionPtr;
+%}
+
+%rename(ContinuousFixedLookbackOption) ContinuousFixedLookbackOptionPtr;
+class ContinuousFixedLookbackOptionPtr : public boost::shared_ptr<Instrument> {
+    #if defined(SWIGMZSCHEME) || defined(SWIGGUILE)
+    %rename("dividend-rho")       dividendRho;
+    #endif
+  public:
+    %extend {
+        ContinuousFixedLookbackOptionPtr(
+				Real currentMinmax,
+                const boost::shared_ptr<Payoff>& payoff,
+                const boost::shared_ptr<Exercise>& exercise) {
+            boost::shared_ptr<StrikedTypePayoff> stPayoff =
+                 boost::dynamic_pointer_cast<StrikedTypePayoff>(payoff);
+            QL_REQUIRE(stPayoff, "wrong payoff given");
+            return new ContinuousFixedLookbackOptionPtr(
+                       new ContinuousFixedLookbackOption(curremtMinmax,
+                                                          stPayoff,exercise));
+        }
+    }
+};
+
+add_greeks_to(ContinuousFixedLookbackOption);
+
+// Lookback engines
+
+
+%{
+using QuantLib::AnalyticContinuousFixedLookbackOptionEngine;
+typedef boost::shared_ptr<PricingEngine>
+    AnalyticContinuousFixedLookbackOptionEnginePtr;
+%}
+
+%rename(AnalyticContinuousFixedLookbackOptionEngine)
+        AnalyticContinuousFixedLookbackOptionEnginePtr;
+class AnalyticContinuousFixedLookbackOptionEnginePtr
+    : public boost::shared_ptr<PricingEngine> {
+  public:
+    %extend {
+        AnalyticContinuousFixedLookbackOptionEnginePtr(
+                           const GeneralizedBlackScholesProcessPtr& process) {
+            boost::shared_ptr<GeneralizedBlackScholesProcess> bsProcess =
+                 boost::dynamic_pointer_cast<GeneralizedBlackScholesProcess>(
+                                                                     process);
+            QL_REQUIRE(bsProcess, "Black-Scholes process required");
+            return new AnalyticContinuousFixedLookbackOptionEnginePtr(
+                new AnalyticContinuousFixedLookbackOptionEngine(
+                                                                  bsProcess));
+        }
+    }
+};
+
 // Double barrier options
 %{
 using QuantLib::DoubleBarrierOption;
